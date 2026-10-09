@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SevaQueue{% endblock %} · SevaQueue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+{% if current_user.is_authenticated %}
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-mark">S</span><span>seva<span class="brand-light">queue</span><small>PUBLIC SERVICE OS</small></span></a>
+    <div class="workspace"><span class="workspace-dot"></span><span><b>Citizen Services</b><small>Community service portal</small></span><span class="chevron">⌄</span></div>
+    <div class="nav-label">WORKSPACE</div>
+    <nav class="side-nav">
+      <a class="{{ 'selected' if request.endpoint == 'dashboard' else '' }}" href="{{ url_for('dashboard') }}"><span>◫</span> Overview</a>
+      <a class="{{ 'selected' if request.endpoint == 'appointments' else '' }}" href="{{ url_for('appointments') }}"><span>▦</span> Appointments</a>
+      {% if current_user.role in ['staff','admin'] %}
+      <a class="{{ 'selected' if request.endpoint == 'reports' else '' }}" href="{{ url_for('reports') }}"><span>⌁</span> Reports & analytics</a>
+      {% endif %}
+      {% if current_user.role == 'admin' %}
+      <div class="nav-label nav-gap">ADMINISTRATION</div>
+      <a class="{{ 'selected' if request.endpoint == 'users' else '' }}" href="{{ url_for('users') }}"><span>♙</span> User management</a>
+      {% endif %}
+    </nav>
+    <div class="sidebar-bottom"><div class="help-card"><div class="help-icon">✦</div><b>Need a hand?</b><p>Manage appointments and keep services moving smoothly.</p><a href="{{ url_for('appointments') }}">View appointments →</a></div>
+      <div class="profile"><div class="avatar">{{ current_user.full_name[:1]|upper }}</div><div class="profile-copy"><b>{{ current_user.full_name }}</b><small>{{ current_user.role|title }}</small></div><form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-btn" title="Sign out" aria-label="Sign out">↪</button></form></div>
+    </div>
+  </aside>
+  <main class="main-area">
+    <header class="topbar"><button class="mobile-menu" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Toggle navigation">☰</button><div class="crumb">Workspace <span>/</span> <b>{% block crumb %}Overview{% endblock %}</b></div><div class="top-actions"><span class="top-date">{{ now.strftime('%a, %d %b %Y') }}</span><span class="top-divider"></span><span class="notification">♧<i></i></span><div class="avatar small">{{ current_user.full_name[:1]|upper }}</div></div></header>
+    <div class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-stack">{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}<button onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}{% endwith %}
+      {% block content %}{% endblock %}
+      <footer class="app-footer">SevaQueue <span>·</span> Community Engagement Project prototype <span class="footer-right">Demo environment · Not an official government service</span></footer>
+    </div>
+  </main>
+</div>
+{% else %}
+{% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="public-flashes">{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}<button onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}{% endwith %}
+{% block public_content %}{% endblock %}
+{% endif %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body></html>
